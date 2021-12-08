@@ -11,7 +11,7 @@ func (c *Content) LoadChapters() error {
 }
 
 type Chapter struct {
-	Index int    `json:"name"`
-	Icon  string `json:"icon"`
-	Pages []int  `json:"pages"`
+	Index int      `json:"name"`
+	Icon  string   `json:"icon"`
+	Pages []string `json:"pages"`
 }
