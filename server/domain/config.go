@@ -1,6 +1,10 @@
 package domain
 
 import (
+	"encoding/json"
+	"fmt"
+	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -20,7 +24,7 @@ func (a *Auth) Store(string) error {
 
 type ContentConfig struct {
 	AuthorName    string    `json:"author_name"`
-	Condition     string    `json:"condition"`
+	Keyword       string    `json:"keyword"`
 	Header        string    `json:"header"`
 	Cover         string    `json:"cover"`
 	Title         string    `json:"title"`
@@ -31,6 +35,17 @@ type ContentConfig struct {
 
 func (c *ContentConfig) LoadConfig(authorName string) error {
 	// TODO impl
+	path, err := filepath.Abs("./../config/contents")
+	if err != nil {
+		return err
+	}
+	data, err := os.ReadFile(fmt.Sprintf("%s/%s.json", path, authorName))
+	if err != nil {
+		return err
+	}
+	if err := json.Unmarshal(data, c); err != nil {
+		return err
+	}
 	return nil
 }
 
