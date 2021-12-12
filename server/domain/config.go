@@ -20,6 +20,7 @@ func (a *Auth) Store(string) error {
 
 type ConfigContentAcquisition struct {
 	ContentID     string    `json:"content_id"`
+	AuthorName    string    `json:"author_name"`
 	Keyword       string    `json:"keyword"`
 	LatestChapter int       `json:"latest_chapter"`
 	LatestTime    time.Time `json:"latest_time"`
