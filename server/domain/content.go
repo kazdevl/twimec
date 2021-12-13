@@ -9,7 +9,9 @@ type ContentInfo struct {
 }
 type Chapter struct {
 	ContentID string `json:"content_id"`
-	Index     int    `json:"name"`
+	Index     int    `json:"index"`
 	Icon      string `json:"icon"`
 	Pages     string `json:"pages"` // great way: use list in one column
 }
+
+type Pages []string
