@@ -2,7 +2,6 @@ package start
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -10,25 +9,25 @@ import (
 
 	"github.com/go-co-op/gocron"
 	"github.com/kazdevl/twimec/api"
-	"github.com/kazdevl/twimec/repository/local"
+	"github.com/kazdevl/twimec/repository"
 	"github.com/kazdevl/twimec/usecase"
 	"github.com/labstack/echo/v4"
 	"github.com/spf13/cobra"
 )
 
-func NewCmd() *cobra.Command {
+func NewCmd(chapterRepo repository.ChapterRepository, configRepo repository.ConfigRepository) *cobra.Command {
 	return &cobra.Command{
 		Use:   "start <twitter_token>",
 		Short: "start proccessings with twitter_token",
 		Long:  `start is for getting twitter_image_contents and providing a well-formatted UI`,
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			proccess(args[0])
+			proccess(args[0], chapterRepo, configRepo)
 		},
 	}
 }
 
-func proccess(token string) {
+func proccess(token string, chapterRepo repository.ChapterRepository, configRepo repository.ConfigRepository) {
 	// 1. launch api server
 	e := echo.New()
 	api.RegisterRoutes(e)
@@ -40,9 +39,6 @@ func proccess(token string) {
 
 	// 2. call cron job
 	tclient := usecase.NewTClient(false, token)
-	homeDir, _ := os.UserHomeDir()
-	chapterRepo := local.NewChapterRepository(fmt.Sprintf("%s/twimec/storage/contents", homeDir))
-	configRepo := local.NewConfigRepository(fmt.Sprintf("%s/twimec/storage/config/contents", homeDir))
 	cronjob := usecase.NewCronjob(tclient, chapterRepo, configRepo)
 
 	s := gocron.NewScheduler(time.UTC)
