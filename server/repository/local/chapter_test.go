@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_GetList(t *testing.T) {
+func Test__ChapterGetList(t *testing.T) {
 	storagePath, _ := filepath.Abs("./testdata")
 	contentID := "sample"
 	repo := NewChapterRepository(storagePath)
@@ -32,7 +32,7 @@ func Test_GetList(t *testing.T) {
 	assert.Equal(t, want, chapters)
 }
 
-func Test_Store(t *testing.T) {
+func Test_ChapterStore(t *testing.T) {
 	storagePath, _ := filepath.Abs("./testdata")
 	contentID := "sample"
 	pages := "sample,sample,sample,sample"
