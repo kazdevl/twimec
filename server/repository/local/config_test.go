@@ -60,6 +60,9 @@ func Test_ConfigAll(t *testing.T) {
 func Test_ConfigStore(t *testing.T) {
 	storagePath, _ := filepath.Abs("./testdata/config/contents")
 	contentID := "sample3"
+	contentDir := filepath.Join(storagePath, contentID)
+	err := os.Mkdir(contentDir, 0777)
+	assert.NoError(t, err)
 	latestTime, err := time.Parse(time.RFC3339, "2021-11-21T14:24:58.000Z")
 	assert.NoError(t, err)
 	config := domain.ConfigContentAcquisition{

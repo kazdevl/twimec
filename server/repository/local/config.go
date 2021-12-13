@@ -58,10 +58,6 @@ func (c *ConfigRepository) All() []domain.ConfigContentAcquisition {
 
 func (c *ConfigRepository) Store(config domain.ConfigContentAcquisition) error {
 	contentDir := filepath.Join(c.storagePath, config.ContentID)
-	if err := os.Mkdir(contentDir, 0777); err != nil {
-		return err
-	}
-
 	f, err := os.Create(fmt.Sprintf("%s/acquisition.json", contentDir))
 	defer f.Close()
 	if err != nil {
