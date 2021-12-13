@@ -1,117 +1,95 @@
 package usecase
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"log"
-	"os"
-	"path/filepath"
+	"os/exec"
 	"strings"
-	"time"
 
 	"github.com/kazdevl/twimec/domain"
-	"github.com/sivchari/gotwtr"
+	"github.com/kazdevl/twimec/repository"
 )
 
 type Cronjob struct {
-	Client *gotwtr.Client
+	tclient     TwitterClient
+	chapterRepo repository.ChapterRepository
+	configRepo  repository.ConfigRepository
 }
 
-const (
-	timeLayout = "2018-11-21T14:24:58.000Z"
-)
-
-func NewCronjob(c *gotwtr.Client) *Cronjob {
+func NewCronjob(tc TwitterClient, crr repository.ChapterRepository, cgr repository.ConfigRepository) *Cronjob {
 	return &Cronjob{
-		Client: c,
+		tclient:     tc,
+		chapterRepo: crr,
+		configRepo:  cgr,
 	}
 }
 
-// テストがしやすいように関数分けを行う
 func (c *Cronjob) FetchContents() {
-	// TODO impl
-	path, err := filepath.Abs("./../config/contents")
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	des, err := os.ReadDir(path)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	for _, de := range des {
-		config := &domain.ContentConfig{}
-		fileName := strings.Split(de.Name(), ".")
-		config.LoadConfig(fileName[0])
-		pagesList, latestTime, err := c.fetchContent(config.AuthorName, config.Keyword, config.LatestTime)
+	configs := c.configRepo.All()
+	authors := make([]string, 0, len(configs))
+	links := make([]string, 0, len(configs))
+	for _, config := range configs {
+		pagesList, latestTime, err := c.tclient.FetchContent(config.AuthorName, config.Keyword, config.LatestTime)
 		if err != nil {
 			log.Println(err)
 			continue
 		}
-
-		path, err := filepath.Abs("./../assets")
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-		f, err := os.OpenFile(fmt.Sprintf("%s/%s", path, config.AuthorName), os.O_CREATE|os.O_RDWR, 0666)
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-		defer f.Close()
-		for _, pages := range pagesList {
-			f.WriteString(strings.Join(pages, " ") + "\n")
-		}
-
-		config.LatestTime = latestTime
-		config.LatestChapter = config.LatestChapter + len(pagesList)
-		if err := config.StoreConfig(); err != nil {
-			log.Println(err)
-			continue
-		}
-	}
-}
-
-func (c *Cronjob) fetchContent(name, keyword string, previous time.Time) ([]domain.Pages, time.Time, error) {
-	// TODO impl
-	query := fmt.Sprintf("from:%s -is:retweet \"%s\"", name, keyword)
-	res, err := c.Client.SearchRecentTweets(context.Background(), query, &gotwtr.SearchTweetsOption{
-		Expansions:  []gotwtr.Expansion{gotwtr.ExpansionAttachmentsMediaKeys},
-		MediaFields: []gotwtr.MediaField{gotwtr.MediaFieldMediaKey, gotwtr.MediaFieldURL},
-		TweetFields: []gotwtr.TweetField{gotwtr.TweetFieldAttachments, gotwtr.TweetFieldCreatedAt},
-		MaxResults:  100,
-		StartTime:   previous,
-	})
-	if err != nil {
-		return nil, previous, err
-	}
-	if len(res.Tweets) == 0 {
-		return nil, previous, errors.New("no tweets")
-	}
-	pagesList := make([]domain.Pages, len(res.Tweets))
-	for index, tweet := range res.Tweets {
-		pagesList[index] = getTweetImageLinks(tweet, res.Includes.Media)
-	}
-	latestTime, _ := time.Parse(timeLayout, res.Tweets[len(res.Tweets)-1].CreatedAt) // 昇順かどうかで変わる
-	return pagesList, latestTime, nil
-}
-
-func getTweetImageLinks(tweet *gotwtr.Tweet, media []*gotwtr.Media) domain.Pages {
-	links := make(domain.Pages, 0, 4)
-	for _, key := range tweet.Attachments.MediaKeys {
-		for _, m := range media {
-			if key == m.MediaKey {
-				links = append(links, m.URL)
+		for j, pages := range pagesList {
+			if err := c.chapterRepo.Store(domain.Chapter{
+				ContentID: config.ContentID,
+				Index:     config.LatestChapter + j + 1,
+				Icon:      pages[0],
+				Pages:     strings.Join(pages, ","),
+			}); err != nil {
+				log.Println(err)
+				continue
 			}
 		}
+
+		if len(pagesList) != 0 {
+			links = append(links, fmt.Sprintf("http://localhost:6666/%s/%d", config.ContentID, config.LatestChapter+1))
+			authors = append(authors, config.AuthorName)
+		}
+		config.LatestTime = latestTime
+		config.LatestChapter = config.LatestChapter + len(pagesList)
+		if err := c.configRepo.Store(config); err != nil {
+			log.Println(err)
+			continue
+		}
 	}
-	return links
+	c.Notify(authors)
+	c.OpenNewContents(links)
 }
 
-func (c *Cronjob) notify(mailAddress string) bool {
-	// TODO impl
-	return true
+func (c *Cronjob) Notify(authros []string) error {
+	if len(authros) == 0 {
+		return errors.New("zero length")
+	}
+	body := fmt.Sprintf("You can read content by the following authors\n%s", strings.Join(authros, "\n"))
+	err := exec.Command("osascript", "-e", fmt.Sprintf(`display notification "%s" with title "New Contents Avairable!!" subtitle "Check Your Safari" sound name "Hero"`, body)).Start()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Cronjob) OpenNewContents(links []string) error {
+	if len(links) == 0 {
+		return errors.New("zero length")
+	}
+	command := `
+	tell application "Safari"
+		open location "%s"
+		activate
+	end tell
+	`
+	for _, link := range links {
+		err := exec.Command("osascript", "-e", fmt.Sprintf(command, link)).Start()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
