@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/kazdevl/twimec/cmd/set"
@@ -13,11 +14,20 @@ import (
 
 func main() {
 	homeDir, _ := os.UserHomeDir()
-	const contentsPath = "twimec/storage/contents"
-	const contentsConfigsPath = "twimec/storage/config/contents"
-	chapterRepo := local.NewChapterRepository(fmt.Sprintf("%s/%s", homeDir, contentsPath))
-	configRepo := local.NewConfigRepository(fmt.Sprintf("%s/%s", homeDir, contentsConfigsPath))
-	contentinfoRepo := local.NewContentInfoRepository(fmt.Sprintf("%s/%s", homeDir, contentsConfigsPath))
+	var (
+		contentsPath       = fmt.Sprintf("%s/twimec/storage/contents", homeDir)
+		contentsConfigPath = fmt.Sprintf("%s/twimec/storage/config/contents", homeDir)
+	)
+	if err := os.MkdirAll(contentsPath, 0777); err != nil {
+		log.Fatal(err)
+	}
+	if err := os.MkdirAll(contentsConfigPath, 0777); err != nil {
+		log.Fatal(err)
+	}
+
+	chapterRepo := local.NewChapterRepository(contentsPath)
+	configRepo := local.NewConfigRepository(contentsConfigPath)
+	contentinfoRepo := local.NewContentInfoRepository(contentsConfigPath)
 
 	var rootCmd = &cobra.Command{Use: "twimec"}
 	rootCmd.AddCommand(
