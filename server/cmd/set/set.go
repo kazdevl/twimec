@@ -1,6 +1,14 @@
 package set
 
 import (
+	"log"
+	"os"
+	"path/filepath"
+	"time"
+
+	"github.com/kazdevl/twimec/domain"
+	"github.com/kazdevl/twimec/repository"
+	"github.com/rs/xid"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -11,7 +19,7 @@ type contentArgs struct {
 	Keyword    string
 }
 
-func NewCmd() *cobra.Command {
+func NewCmd(cRepo repository.ConfigRepository, ciRepo repository.ContentInfoRepository) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "set -t -a -k",
 		Short: "set title, auhtor name, keyword",
@@ -22,7 +30,8 @@ func NewCmd() *cobra.Command {
 			}
 			var c contentArgs
 			c.Title, c.AuthorName, c.Keyword = getFlagValues(cmd.Flags())
-			proccess(c)
+			err := proccess(c, cRepo, ciRepo)
+			log.Println(err)
 		},
 	}
 	cmd.LocalFlags().StringP("title", "t", "", "set title")
@@ -56,6 +65,28 @@ func getFlagValues(fSet *pflag.FlagSet) (t, a, k string) {
 	return
 }
 
-func proccess(c contentArgs) {
-	// TODO impl
+func proccess(c contentArgs, cRepo repository.ConfigRepository, ciRepo repository.ContentInfoRepository) error {
+	homeDir, _ := os.UserHomeDir()
+	guid := xid.New().String()
+	if err := os.Mkdir(filepath.Join(homeDir, "twimec", "storage", "config", "contents", guid), 0777); err != nil {
+		return err
+	}
+	contentinfo := domain.ContentInfo{
+		ID:         guid,
+		AuthorName: c.AuthorName,
+		Title:      c.Title,
+	}
+	config := domain.ConfigContentAcquisition{
+		ContentID:  guid,
+		AuthorName: c.AuthorName,
+		Keyword:    c.Keyword,
+		LatestTime: time.Now().In(time.UTC),
+	}
+	if err := ciRepo.Store(contentinfo); err != nil {
+		return err
+	}
+	if err := cRepo.Store(config); err != nil {
+		return err
+	}
+	return nil
 }
