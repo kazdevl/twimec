@@ -3,6 +3,7 @@ package repository
 import "github.com/kazdevl/twimec/domain"
 
 type ConfigRepository interface {
+	Get(contentID string) *domain.ConfigContentAcquisition
 	All() []domain.ConfigContentAcquisition
 	Store(config domain.ConfigContentAcquisition) error
 	Update(config domain.ConfigContentAcquisition) error
