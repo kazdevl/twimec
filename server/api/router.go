@@ -8,6 +8,7 @@ import (
 
 func RegisterRoutes(e *echo.Echo) {
 	// web server
+	e.Renderer = web.NewTemplate()
 	e.GET("/", web.ContentListPage)
 	e.GET("/:content_id", web.ContentPage)
 	e.GET("/:content_id/:chapter_number", web.ChapterPage)
