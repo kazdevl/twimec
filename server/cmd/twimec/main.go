@@ -6,9 +6,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/kazdevl/twimec/cmd/set"
-	"github.com/kazdevl/twimec/cmd/start"
-	"github.com/kazdevl/twimec/cmd/stop"
+	"github.com/kazdevl/twimec/cmd/twimec/set"
+	"github.com/kazdevl/twimec/cmd/twimec/start"
+	"github.com/kazdevl/twimec/cmd/twimec/stop"
 	"github.com/kazdevl/twimec/repository/local"
 	"github.com/spf13/cobra"
 )
@@ -29,7 +29,7 @@ func main() {
 	if err := os.MkdirAll(templatePath, 0777); err != nil {
 		log.Fatal(err)
 	}
-	tDir, err := filepath.Abs("./web/template")
+	tDir, err := filepath.Abs("./../../web/template")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -39,6 +39,9 @@ func main() {
 	}
 	for _, de := range des {
 		data, err := os.ReadFile(fmt.Sprintf("%s/%s", tDir, de.Name()))
+		if err != nil {
+			log.Fatal(err)
+		}
 		dest, err := os.Create(fmt.Sprintf("%s/%s", templatePath, de.Name()))
 		defer dest.Close()
 		if err != nil {
