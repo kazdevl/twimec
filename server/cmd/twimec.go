@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/kazdevl/twimec/cmd/set"
 	"github.com/kazdevl/twimec/cmd/start"
@@ -17,12 +18,33 @@ func main() {
 	var (
 		contentsPath       = fmt.Sprintf("%s/twimec/storage/contents", homeDir)
 		contentsConfigPath = fmt.Sprintf("%s/twimec/storage/config/contents", homeDir)
+		templatePath       = fmt.Sprintf("%s/twimec/web/template", homeDir)
 	)
 	if err := os.MkdirAll(contentsPath, 0777); err != nil {
 		log.Fatal(err)
 	}
 	if err := os.MkdirAll(contentsConfigPath, 0777); err != nil {
 		log.Fatal(err)
+	}
+	if err := os.MkdirAll(templatePath, 0777); err != nil {
+		log.Fatal(err)
+	}
+	tDir, err := filepath.Abs("./web/template")
+	if err != nil {
+		log.Fatal(err)
+	}
+	des, err := os.ReadDir(tDir)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, de := range des {
+		data, err := os.ReadFile(fmt.Sprintf("%s/%s", tDir, de.Name()))
+		dest, err := os.Create(fmt.Sprintf("%s/%s", templatePath, de.Name()))
+		defer dest.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+		dest.Write(data)
 	}
 
 	chapterRepo := local.NewChapterRepository(contentsPath)
@@ -31,7 +53,7 @@ func main() {
 
 	var rootCmd = &cobra.Command{Use: "twimec"}
 	rootCmd.AddCommand(
-		start.NewCmd(configRepo, chapterRepo),
+		start.NewCmd(configRepo, contentinfoRepo, chapterRepo),
 		set.NewCmd(configRepo, contentinfoRepo),
 		stop.NewCmd(),
 	)
