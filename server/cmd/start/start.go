@@ -15,22 +15,22 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewCmd(configRepo repository.ConfigRepository, chapterRepo repository.ChapterRepository) *cobra.Command {
+func NewCmd(configRepo repository.ConfigRepository, contentinfoRepo repository.ContentInfoRepository, chapterRepo repository.ChapterRepository) *cobra.Command {
 	return &cobra.Command{
 		Use:   "start <twitter_token>",
 		Short: "start proccessings with twitter_token",
 		Long:  `start is for getting twitter_image_contents and providing a well-formatted UI`,
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			proccess(args[0], configRepo, chapterRepo)
+			proccess(args[0], configRepo, contentinfoRepo, chapterRepo)
 		},
 	}
 }
 
-func proccess(token string, configRepo repository.ConfigRepository, chapterRepo repository.ChapterRepository) {
+func proccess(token string, configRepo repository.ConfigRepository, contentinfoRepo repository.ContentInfoRepository, chapterRepo repository.ChapterRepository) {
 	// 1. launch api server
 	e := echo.New()
-	api.RegisterRoutes(e)
+	api.RegisterRoutes(e, configRepo, contentinfoRepo, chapterRepo)
 	go func() {
 		if err := e.Start(":6666"); err != nil {
 			log.Fatal(err)
