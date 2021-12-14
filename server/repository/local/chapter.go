@@ -19,6 +19,16 @@ func NewChapterRepository(sp string) *ChapterRepository {
 	}
 }
 
+func (c *ChapterRepository) GetPages(contentID string, index int) domain.Pages {
+	contentDir := filepath.Join(c.storagePath, contentID)
+	pagesByte, err := os.ReadFile(fmt.Sprintf("%s/%d.txt", contentDir, index))
+	if err != nil {
+		return nil
+	}
+	pages := string(pagesByte)
+	return strings.Split(pages, ",")
+}
+
 func (c *ChapterRepository) GetList(contentID string) []domain.Chapter {
 	contentDir := filepath.Join(c.storagePath, contentID)
 	des, err := os.ReadDir(contentDir)

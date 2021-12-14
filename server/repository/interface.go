@@ -17,6 +17,7 @@ type ContentInfoRepository interface {
 }
 
 type ChapterRepository interface {
+	GetPages(contentID string, index int) domain.Pages
 	GetList(contentID string) []domain.Chapter
 	Store(chapter domain.Chapter) error
 }
