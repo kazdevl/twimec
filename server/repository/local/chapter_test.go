@@ -10,6 +10,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func Test__ChapterGetPages(t *testing.T) {
+	storagePath, _ := filepath.Abs("./testdata")
+	contentID := "sample"
+	index := 0
+	repo := NewChapterRepository(storagePath)
+	pages := repo.GetPages(contentID, index)
+	want := domain.Pages([]string{"sample", "sample", "sample"})
+	assert.Equal(t, want, pages)
+}
 func Test__ChapterGetList(t *testing.T) {
 	storagePath, _ := filepath.Abs("./testdata")
 	contentID := "sample"
