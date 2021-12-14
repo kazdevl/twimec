@@ -30,10 +30,11 @@
             <div>{{.Title}}</div>
             <div>著者: {{.AuthorName}}</div>
         </div>
-        {{range .}}
+        {{range $index, $element := .Chapters}}
         <ul class="list-group list-group-flush">
-            <li class="list-group-item"><img src="{{.Icon}}" class="img-fluid" style="height: 30px; width: 30px;">
-                <a href="http://localhost:6666/{{.ID}}/{{.Index}}" class="ml-2">第{{.Index}}章</a>
+            <li class="list-group-item"><img src="{{$element.Icon}}" class="img-fluid"
+                    style="height: 30px; width: 30px;">
+                <a href="http://localhost:6666/{{$element.ContentID}}/{{$index}}" class="ml-2">第{{$element.Index}}章</a>
             </li>
         </ul>
         {{else}}
