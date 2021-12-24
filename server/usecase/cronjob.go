@@ -48,7 +48,7 @@ func (c *Cronjob) FetchContents() {
 		}
 
 		if len(pagesList) != 0 {
-			links = append(links, fmt.Sprintf("http://localhost:6666/%s/%d", config.ContentID, config.LatestChapter+1))
+			links = append(links, fmt.Sprintf("http://localhost:8080/%s/%d", config.ContentID, config.LatestChapter+1))
 			authors = append(authors, config.AuthorName)
 		}
 		config.LatestTime = latestTime

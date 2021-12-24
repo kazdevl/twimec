@@ -1,3 +1,4 @@
+{{define "chapter"}}
 <!doctype html>
 <html lang="ja">
 
@@ -17,10 +18,10 @@
         onMouseOver="this.style.opacity=1">
         <nav class="navbar navbar-dark w-75 mr-auto ml-auto">
             <div class="container-fluid">
-                <a class="navbar-brand" href="http://localhost:6666">
+                <a class="navbar-brand" href="http://localhost:8080">
                     Twimec
                 </a>
-                <button onclick="location.href='http://localhost:6666/{{.ID}}'" type="button"
+                <button onclick="location.href='http://localhost:8080/{{.ID}}'" type="button"
                     class="btn btn-secondary btn-sm">Back</button>
             </div>
         </nav>
@@ -33,11 +34,11 @@
         </div>
         <div class="mb-2 bg-light d-flex justify-content-around">
             {{if .Previous}}
-            <button onclick="location.href='http://localhost:6666/{{.ID}}/{{.Previous}}'" type="button"
+            <button onclick="location.href='http://localhost:8080/{{.ID}}/{{.Previous}}'" type="button"
                 class="btn btn-outline-secondary mb-1">前話へ</button>
             {{end}}
             {{if .Next}}
-            <button onclick="location.href='http://localhost:6666/{{.ID}}/{{.Next}}'" type="button"
+            <button onclick="location.href='http://localhost:8080/{{.ID}}/{{.Next}}'" type="button"
                 class="btn btn-outline-primary mb-1">次話へ</button>
             {{end}}
         </div>
@@ -63,3 +64,4 @@
 </body>
 
 </html>
+{{end}}
