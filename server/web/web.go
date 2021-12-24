@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -49,6 +50,7 @@ func NewWeb(
 
 func (w *Web) ContentListPage(c echo.Context) error {
 	contentinfoList := w.contentinfoRepo.All()
+	log.Printf("%+v", contentinfoList)
 	return c.Render(http.StatusOK, "contentList", contentinfoList)
 }
 
@@ -62,14 +64,17 @@ func (w *Web) ContentPage(c echo.Context) error {
 	}
 	type data struct {
 		Header     string
+		Title      string
 		AuthorName string
 		Chapters   []domain.Chapter
 	}
 	d := data{
 		Header:     header,
+		Title:      w.contentinfoRepo.GetAuthorName(contentID),
 		AuthorName: w.contentinfoRepo.GetAuthorName(contentID),
 		Chapters:   w.chapterRepo.GetList(contentID),
 	}
+	log.Printf("%+v", d)
 	return c.Render(http.StatusOK, "content", d)
 }
 
