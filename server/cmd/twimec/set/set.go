@@ -21,7 +21,7 @@ type contentArgs struct {
 
 func NewCmd(cRepo repository.ConfigRepository, ciRepo repository.ContentInfoRepository) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "set -t -a -k",
+		Use:   "set",
 		Short: "set title, auhtor name, keyword",
 		Long:  `set is for setting title, auhtor name, keyword`,
 		Run: func(cmd *cobra.Command, args []string) {
@@ -34,9 +34,12 @@ func NewCmd(cRepo repository.ConfigRepository, ciRepo repository.ContentInfoRepo
 			log.Println(err)
 		},
 	}
-	cmd.LocalFlags().StringP("title", "t", "", "set title")
-	cmd.LocalFlags().StringP("author", "a", "", "set author_name")
-	cmd.LocalFlags().StringP("keyword", "k", "", "set keyword")
+	cmd.Flags().StringP("title", "t", "", "set title")
+	cmd.Flags().StringP("author", "a", "", "set author_name")
+	cmd.Flags().StringP("keyword", "k", "", "set keyword")
+	cmd.MarkFlagRequired("title")
+	cmd.MarkFlagRequired("author")
+	cmd.MarkFlagRequired("keyword")
 	return cmd
 }
 
